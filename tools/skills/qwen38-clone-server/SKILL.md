@@ -26,6 +26,7 @@ description: 一键克隆/切换 Qwen3.8-27B AutoDL 服务器并打通本地 cod
 ⑤ 让用户在控制台映射 6006 拿【公网 URL】
 ⑥ 自动新增 codex provider + 别名 + 实测
 ⑦ Hermes qwen-思考接入（set qwenthink profile → 新机）
+⑧ VPS 看门狗（★默认自动配：新克隆机自动加进 VPS TARGETS 拉起，无需申请）
 ```
 
 ---
@@ -93,6 +94,17 @@ python scripts/setup_hermes.py <公网URL>/v1 <API_KEY>
 
 > 若用户明确新机只做 codex（快档），可跳过本步。
 
+## ⑧ VPS 看门狗（★默认自动配）
+**只要新机是 qwen 克隆，默认就把它加进 VPS 看门狗 TARGETS，开机自启+崩溃自愈**，不等待用户申请。
+```bash
+ssh vps-aliyun   # 编辑 /opt/qwen-watchdog/qwen_watchdog.sh，向 TARGETS 数组追加一行：
+#   "connect.<region>.seetacloud.com:<PORT>:root:/bin/bash /root/autodl-tmp/start_clone<sm>.sh"
+systemctl restart qwen-watchdog && systemctl is-active qwen-watchdog   # 生效
+```
+- **key 复用**：clone2 系机器都带 `qwen-watchdog@vps` 公钥（若新机非 clone2 派生，需先把该 pub 加进其 `authorized_keys`）。
+- 验：开机后 `journalctl -u qwen-watchdog -f` 应见 `[host] llama-server 未就绪，拉起...` → `已恢复`。
+- 相关事实/更多见：伞项目 `watchdog-vps/README.md`。
+
 ---
 
 ## 验证清单
@@ -101,10 +113,12 @@ python scripts/setup_hermes.py <公网URL>/v1 <API_KEY>
 - [ ] codex provider `qwen38clone<N>` 存在 + alias `codex-clone<N>-free` 存在；`CLONE_<N>_OK`
 - [ ] Hermes：`qwenthink` profile base_url → 新机；`hermes -p qwenthink`(或 `hermes-qwen`) 顶部显示 `qwen3.8-27b`
 - [ ] 新机思考档 = `--reasoning on`（如做 Hermes 角色）
+- [ ] **VPS 看门狗已加入 TARGETS**（`journalctl -u qwen-watchdog` 能看到该机，开机能自动拉起）
 
 ## 注意 / 约束
 - **不动 5090 生产档**：不覆盖 `qwen38` provider、不关停 `autodl-5090`、不碰其配置。
 - **每次新建独立 codex 入口**，避免克隆间互相干扰；Hermes 是单一 `qwenthink` profile，指到最新 qwen-思考机。
 - **codex 与服务器思考互斥**：codex 走 /v1/responses，服务器 --reasoning on 时 responses 超时→codex 连不上。要 codex 用新机需 off；Hermes 思考需 on。一台机二选一。
+- **看门狗**只对带卡开机生效（无 GPU 起不了 CUDA 版）；机器关机/无卡 → 静默跳过，无卡不跑。
 - 服务器按小时计费，测完不用可关机省费。
-- 完成后更新项目记忆/归档（`qwen38-clone-switch-20260823`）记录新机。相关部署事实见 `references/qwen38_facts.md`。
+- 完成后更新项目记忆/归档（\`qwen38-clone-switch-20260823\`）记录新机。相关部署事实见 `references/qwen38_facts.md`。

@@ -1,28 +1,38 @@
-# watchdog-vps — 阿里云 VPS 看门狗（辅助子项）
+# watchdog-vps — 阿里云 VPS 看门狗（辅助子项，多机版）
 
 > **目的**：qwen 自建服务器（AutoDL）每天 1:15 自动关机、用户早 7 点重开。
 > AutoDL 容器 PID1=`/init/boot/boot.sh`（无 systemd/cron 可挂靠），控制台「自定义服务」**只做端口映射、不能执行命令**。
 > 因此用**常开的阿里云 VPS** 做看门狗：检测到 qwen 机器在线但 llama-server 未就绪 → 自动 SSH 进去拉起 → 等 `/health` ok。
 > **附带价值**：白天 llama-server 崩溃也会自动恢复，不只开机一次。
+>
+> **★默认约定（v1.x，2026-08-23）**：以后**任何新克隆的 qwen 机器**，克隆对接时**默认自动**写入 `TARGETS` 数组 + 复用同一把 `id_watchdog` key，随配置一并配好 VPS 拉起；无需每次手动申请。
 
 ## 架构
 ```
-[阿里云VPS 常开]  ──每60s 探测──►  [qwen AutoDL 服务器]
+[阿里云VPS 常开]  ──每60s 逐台探测──►  [qwen AutoDL 服务器 ×N]
       │ systemd: qwen-watchdog          │
-      │ 若 机器在线 ∧ llama-server down │
-      │  → SSH 跑 start_clone<sm>.sh ──► /health ok ⇄ Hermes/公网 可用
+      │ 对每台: 机器在线 ∧ llama down   │
+      │  → SSH 跑 start_clone<sm>.sh ──► /health ok ⇄ 该台公网 可用
 ```
-- 机器关机（AutoDL 自动关）→ 探测失败 → 看门狗静默空转，不误操作。
-- 机器一开机（sshd 起来）→ 下一轮发现 llama 没起 → 自动拉起（开机自启）。
-- 步骤依赖：qwen 端已有 `start_clone<sm>.sh`（`--reasoning on` Hermes 思考档），且公网映射规则静态存在、重启不失效。
+- 多机：一个长驻循环遍历 `TARGETS`（host:port:user:start 一行一台），互不干扰。
+- 机器关机 → 探测失败 → 静默跳过；开机(sshd 起) → 下一轮自动拉起。
+- 3 台均为 clone2 系统盘克隆 → **共用同一把 key** `id_watchdog`（已含在 authorized_keys）。
+- 步骤依赖：每台已有 `start_clone89.sh`（`--reasoning on` Hermes 思考档），公网映射规则静态存在、重启不失效。
 
 ## 组成
 | 文件 | 说明 |
 |---|---|
-| `qwen_watchdog.sh` | 长驻循环：每 60s 探测 → 拉起 → 轮询等 health（≤150s） |
+| `qwen_watchdog.sh` | **多机版**长驻循环：每 60s 遍历 TARGETS → 拉起 → 轮询等 health（≤150s） |
 | `qwen-watchdog.service` | systemd unit：`Restart=always`，`enabled` 开机自启（VPS 本身是正规 systemd） |
 
-## 部署（当前已完成的 clone2 实例）
+## 当前巡检目标（TARGETS）
+| 别名 | host:port | 启动脚本 |
+|---|---|---|
+| clone2 | westc:19407 | start_clone89.sh |
+| clone1 | westc:46949 | start_clone89.sh |
+| clone3(原vgpu) | westd:31102 | start_clone89.sh |
+
+## 部署（当前已完成的 clone2/clone1/clone3）
 **VPS 侧**（`vps-aliyun`，101.200.227.65）：
 ```bash
 scp/rsh 到 /opt/qwen-watchdog/ 下 id_watchdog(私钥) 与 known_hosts

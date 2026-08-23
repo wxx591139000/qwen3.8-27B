@@ -67,3 +67,12 @@ cmake --build build<SM> --config Release -j<N> --target llama-server
   ```
 - 前提：`start_clone<sm>.sh` 已存在（对应克隆/部署的启动脚本，需含 `nohup` 让进程在命令返回后存活；`pkill` 防重复实例）。
 - 服务与公网：开机自启只负责把 llama-server 起在 6006；公网 URL 是控制台另一条 6006 映射规则，**静态存在、重启不失效** → 服务一开，Hermes `qwenthink`(已指到该公网) 立即可用。
+
+## 看门狗多机 TARGETS（2026-08-23 扩到 3 台）
+- VPS 看门狗为**多机版**：单个长驻循环遍历 `TARGETS`(host:port:user:start)。当前：
+  - clone2 = westc:19407 ｜ clone1 = westc:46949 ｜ clone3(原vgpu) = westd:31102，均 `start_clone89.sh`(思考档)。
+- **★默认约定（用户偏好，已固化）**：以后**任何新克隆 qwen 机**，对接时**默认自动**加进 `TARGETS` + 复用 `id_watchdog` key（clone2 派生系自带），无需用户每次申请。
+- key：clone2/clone1/clone3 均为 clone2 系统盘克隆 → authorized_keys 自带 `qwen-watchdog@vps`。
+- clone2 派生系同理：改 `TARGETS` 加一行 → `systemctl restart qwen-watchdog` 即生效。
+- 生效验证：开机后 `journalctl -u qwen-watchdog -f` 见 `[host] llama-server 未就绪，拉起...` → `已恢复`。
+- 详见伞项目 `watchdog-vps/README.md`。
