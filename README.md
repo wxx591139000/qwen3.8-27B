@@ -31,17 +31,20 @@ qwen3.8-27B（本伞项目 = E:\myClaudCodeWorkspace\qwen3.8-27B\）
 - **归属**：两仓库平级，各自独立 git/push；通用改动主改 5090 再同步，卡专属改动各项目自理。
 
 ## 运行实例清单（2026-08-23，AutoDL 4 台）
-| 实例(ali as) | 子项目 | 卡/sm | codex | Hermes | 思考 | 状态 |
-|---|---|---|---|---|---|---|
-| autodl-5090 | 5090 | 5090/sm120 | codex-q38/-free | - | off | 离线 |
-| autodl-qwen-vgpu | vgpu | 4080/sm89 | codex-q38new-free | - | off | 离线 |
-| autodl-qwen-clone1 | 5090(克隆) | 4080SUPER/sm89 | codex-clone1-free | - | on | 离线 |
-| autodl-qwen-clone2 | 5090(克隆) | 4080/sm89 | (被思考占) | qwenthink | **on** | 在线 |
+| 实例(alias) | 卡/sm | 角色 | 思考 | 状态 |
+|---|---|---|---|---|
+| autodl-5090 | 5090/sm120 | codex-q38(生产，off 可codex) | off | 离线 |
+| autodl-qwen-clone1 | 4080SUPER/sm89 | Hermes 思考 | on | 离线(带卡可起) |
+| autodl-qwen-clone2 | 4080/sm89 | Hermes 思考 | **on** | **在线(看门狗自动拉起)** |
+| autodl-qwen-clone3(=原autodl-qwen-vgpu) | 4080/sm89 | Hermes 思考 | on | 离线(带卡可起) |
 
-- codex provider：qwen36/qwen38/qwen38-vgpu/qwen38clone1/qwen38clone2
-- Hermes：`hermes-qwen` = `hermes -p qwenthink`（per-window，仅 qwen 窗口用；全局 deepseek）
+> clone1/clone2/clone3 均为 clone2 系统盘+数据盘克隆（build89/sm89 通用），VPS 看门狗 3 台巡检（开机自启+崩溃自愈）。
+
+- **代码x provider**：qwen38clone1/qwen38clone2/qwen38clone3（**暂停启用**，见下方决策）。qwen36/qwen38(5090,off)/qwen38-vgpu 保留。
+- **★决策（2026-08-23）**：**codex + qwen（思考机）组合暂停**——codex 走 `/v1/responses` 强制 high 思考，与服务器 `--reasoning on` 冲突超时（根因见 qwen38_facts §codex）。要 codex 用 qwen 须 `--reasoning off` 的机；**当前主力开发路径 = Hermes + qwen 思考（✔ 兼容）**。codex provider/别名保留未删（"暂时"，随时可回）。
+- **Hermes**：`hermes-qwen` = `hermes -p qwenthink`（per-window 仅 qwen 窗口，指向 clone2 公网；全局 deepseek 不动）
 - 续接：说「按交接提示继续」→ `qwen38-5090-deploy/docs/接交接.md`
 
-> 版本 v1.2 ｜ 2026-08-23 ｜ **归档v2**：新增辅助子项 `watchdog-vps`（阿里云VPS看门狗：qwen 开机自启+崩溃自愈拉起 llama-server），伞 tag `archive-20260823-v2`
-> 归档节点：子项目① `archive-20260823-v2`，子项目② `archive-20260823`（均在各自 repo）｜伞 `archive-20260823-v2`
+> 版本 v1.3 ｜ 2026-08-23 ｜ **归档v3**：3 台 clone 齐成 clone2 状态 + codex+qwen(思考机)暂停(留provider)、主力改 Hermes、VPS 看门狗3台巡检；伞 tag `archive-20260823-v3`
+> 归档节点：子项目① `archive-20260823-v2`，子项目② `archive-20260823`（均在各自 repo）｜伞 `archive-20260823-v3`
 > 续接：说「按交接提示继续」→ 记忆 `qwen38-clone-switch-resume-handoff`
