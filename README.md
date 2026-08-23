@@ -13,8 +13,10 @@ qwen3.8-27B（本伞项目 = E:\myClaudCodeWorkspace\qwen3.8-27B\）
 │   │     └─ 克隆实例 autodl-qwen-clone1(4080SUPER/sm89), autodl-qwen-clone2(4080/sm89, Hermes思考)
 │   └── qwen38-vgpu-deploy/   ← 子项目②：vGPU-32GB(RTX4080) 平价部署（单用户/试验）
 │         └─ 实例 autodl-qwen-vgpu (4080/sm89, codex-q38new-free via隧道6112)
-└── tools/skills/qwen38-clone-server/   ← 一键克隆skill的归档快照
-       （活技能在本机 ~/.claude/skills/qwen38-clone-server/，随本伞入库备份）
+├── tools/skills/qwen38-clone-server/   ← 一键克隆skill的归档快照
+│      （活技能在本机 ~/.claude/skills/qwen38-clone-server/，随本伞入库备份）
+└── watchdog-vps/                       ← ★辅助子项：阿里云VPS看门狗（开机自启+崩溃自愈拉起qwen服务）
+       （VPS 常开监测，机器在线∧llama down → 自动 SSH 起 llama-server；存档脚本+systemd unit+README）
 ```
 > 两子项目各自的 `.git` 随目录移动、远端/tag/历史完整保留；服务器跑在 `/root/autodl-tmp`(AutoDL)，与本位置无关 → **分支依赖零影响**。
 
@@ -40,6 +42,6 @@ qwen3.8-27B（本伞项目 = E:\myClaudCodeWorkspace\qwen3.8-27B\）
 - Hermes：`hermes-qwen` = `hermes -p qwenthink`（per-window，仅 qwen 窗口用；全局 deepseek）
 - 续接：说「按交接提示继续」→ `qwen38-5090-deploy/docs/接交接.md`
 
-> 版本 v1.1 ｜ 2026-08-23 ｜ **重构归档**：两子项目移入 `branches/`，结构定型
-> 归档节点：子项目① `archive-20260823-v2`，子项目② `archive-20260823`（均在各自 repo）
+> 版本 v1.2 ｜ 2026-08-23 ｜ **归档v2**：新增辅助子项 `watchdog-vps`（阿里云VPS看门狗：qwen 开机自启+崩溃自愈拉起 llama-server），伞 tag `archive-20260823-v2`
+> 归档节点：子项目① `archive-20260823-v2`，子项目② `archive-20260823`（均在各自 repo）｜伞 `archive-20260823-v2`
 > 续接：说「按交接提示继续」→ 记忆 `qwen38-clone-switch-resume-handoff`

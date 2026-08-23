@@ -1,0 +1,13 @@
+[Unit]
+Description=qwen llama-server watchdog (auto-start on boot, self-heal)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /opt/qwen-watchdog/qwen_watchdog.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

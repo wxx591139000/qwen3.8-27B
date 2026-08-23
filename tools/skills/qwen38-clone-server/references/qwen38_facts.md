@@ -57,3 +57,13 @@ cmake --build build<SM> --config Release -j<N> --target llama-server
 - 5090 生产：`autodl-5090` weste:15844, 公网 u1068217-f8tl-…:8443, codex-q38/-free
 - vGPU 平价：`autodl-qwen-vgpu` westd:31102, RTX4080/sm_89, codex-q38new-free(隧道6112)
 - 项目（伞 `qwen3.8-27B` 下两子项目）：`E:\myClaudCodeWorkspace\qwen3.8-27B\branches\qwen38-5090-deploy`、`E:\myClaudCodeWorkspace\qwen3.8-27B\branches\qwen38-vgpu-deploy`
+
+## 开机自启 llama-server（AutoDL 复盘 2026-08-23）
+- **结论：必须走 AutoDL 控制台「自定义服务 / 开机自启动」，一条 SSH 命令都不行。**
+- 实测这台：PID1=`bash /init/boot/boot.sh`（非 systemd → `systemctl` offline 不可用）；无 cron(`crontab: not found`)；AutoDL 自带 supervisord(`/init/supervisor/supervisor.ini`) 配置在临时区重启丢，不能挂靠。
+- 控制台做法：`控制台 → 实例 → 更多/自定义服务 → 新增开机自启动` → 命令填：
+  ```
+  /bin/bash /root/autodl-tmp/start_clone<sm>.sh
+  ```
+- 前提：`start_clone<sm>.sh` 已存在（对应克隆/部署的启动脚本，需含 `nohup` 让进程在命令返回后存活；`pkill` 防重复实例）。
+- 服务与公网：开机自启只负责把 llama-server 起在 6006；公网 URL 是控制台另一条 6006 映射规则，**静态存在、重启不失效** → 服务一开，Hermes `qwenthink`(已指到该公网) 立即可用。
