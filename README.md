@@ -13,7 +13,8 @@ qwen3.8-27B（本伞项目 = E:\myClaudCodeWorkspace\qwen3.8-27B\）
 │   │     └─ 克隆实例 autodl-qwen-clone1(4080SUPER/sm89), autodl-qwen-clone2(4080/sm89, Hermes思考)
 │   └── qwen38-vgpu-deploy/   ← 子项目②：vGPU-32GB(RTX4080) 平价部署（单用户/试验）
 │         └─ 实例 autodl-qwen-vgpu (4080/sm89, codex-q38new-free via隧道6112)
-└── skill: qwen38-clone-server（新机一键克隆/切换/接入）
+└── tools/skills/qwen38-clone-server/   ← 一键克隆skill的归档快照
+       （活技能在本机 ~/.claude/skills/qwen38-clone-server/，随本伞入库备份）
 ```
 > 两子项目各自的 `.git` 随目录移动、远端/tag/历史完整保留；服务器跑在 `/root/autodl-tmp`(AutoDL)，与本位置无关 → **分支依赖零影响**。
 
