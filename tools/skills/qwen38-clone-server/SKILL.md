@@ -25,6 +25,7 @@ description: 一键克隆/切换 Qwen3.8-27B AutoDL 服务器并打通本地 cod
 ④ 启动服务 + 等 health
 ⑤ 让用户在控制台映射 6006 拿【公网 URL】
 ⑥ 自动新增 codex provider + 别名 + 实测
+⑦ Hermes qwen-思考接入（set qwenthink profile → 新机）
 ```
 
 ---
@@ -78,16 +79,32 @@ description: 一键克隆/切换 Qwen3.8-27B AutoDL 服务器并打通本地 cod
 
 只有实测通过才算完成。
 
+## ⑦ Hermes qwen-思考接入（让 hermes-qwen 用新机）
+
+用户主用 **Hermes 带思考做 qwen 代码开发**。克隆后默认把 Hermes 的 `qwenthink` profile 指到新机：
+
+```bash
+python scripts/setup_hermes.py <公网URL>/v1 <API_KEY>
+```
+- 仅改 `~/.hermes/profiles/qwenthink/config.yaml` 的 `providers.qwenthink` base_url/api_key/default_model → 新机；**全局 `~/.hermes/config.yaml`(deepseek) 与 tts/stt/memory 全不动**。
+- 改后 `hermes-qwen`(= `hermes -p qwenthink chat`) 即连新机 qwen。
+- **前提**：新机要用思考，启动脚本须 `--reasoning on`（改 `start_clone<sm>.sh` 并重启）。
+- **角色互斥注意**：codex 需要新机 `--reasoning off`，Hermes 思考需要 `on`——**一台机只能跑一种角色**（同 llama-server 进程）。默认给新机按 Hermes 思考档(`on`)，此时 `codex-clone<N>-free` 连不上（responses+思考冲突，见 qwen38_facts §codex）；要 codex 就改回 `off`。
+
+> 若用户明确新机只做 codex（快档），可跳过本步。
+
 ---
 
 ## 验证清单
 - [ ] `ssh autodl-qwen-clone<N> 'echo ok'` 免密直达
 - [ ] `nvidia-smi` compute_cap → sm 确认；`/health` ok
-- [ ] codex provider `qwen38clone<N>` 存在 + alias `codex-clone<N>-free` 存在
-- [ ] codex 实测返回 `CLONE_<N>_OK`
+- [ ] codex provider `qwen38clone<N>` 存在 + alias `codex-clone<N>-free` 存在；`CLONE_<N>_OK`
+- [ ] Hermes：`qwenthink` profile base_url → 新机；`hermes -p qwenthink`(或 `hermes-qwen`) 顶部显示 `qwen3.8-27b`
+- [ ] 新机思考档 = `--reasoning on`（如做 Hermes 角色）
 
 ## 注意 / 约束
 - **不动 5090 生产档**：不覆盖 `qwen38` provider、不关停 `autodl-5090`、不碰其配置。
-- **每次新建独立入口**，避免克隆间互相干扰。
+- **每次新建独立 codex 入口**，避免克隆间互相干扰；Hermes 是单一 `qwenthink` profile，指到最新 qwen-思考机。
+- **codex 与服务器思考互斥**：codex 走 /v1/responses，服务器 --reasoning on 时 responses 超时→codex 连不上。要 codex 用新机需 off；Hermes 思考需 on。一台机二选一。
 - 服务器按小时计费，测完不用可关机省费。
 - 完成后更新项目记忆/归档（`qwen38-clone-switch-20260823`）记录新机。相关部署事实见 `references/qwen38_facts.md`。
