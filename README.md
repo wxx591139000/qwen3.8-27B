@@ -43,8 +43,9 @@ qwen3.8-27B（本伞项目 = E:\myClaudCodeWorkspace\qwen3.8-27B\）
 - **代码x provider**：qwen38clone1/qwen38clone2/qwen38clone3（**暂停启用**，见下方决策）。qwen36/qwen38(5090,off)/qwen38-vgpu 保留。
 - **★决策（2026-08-23）**：**codex + qwen（思考机）组合暂停**——codex 走 `/v1/responses` 强制 high 思考，与服务器 `--reasoning on` 冲突超时（根因见 qwen38_facts §codex）。要 codex 用 qwen 须 `--reasoning off` 的机；**当前主力开发路径 = Hermes + qwen 思考（✔ 兼容）**。codex provider/别名保留未删（"暂时"，随时可回）。
 - **Hermes**：`hermes-qwen` = `hermes -p qwenthink`（per-window 仅 qwen 窗口，指向 clone2 公网；全局 deepseek 不动）
+- **★主力思考档（2026-08-24）**：`--reasoning-budget 2000`（budget 三档对比甜区：aime 复核≥无界、coding 75% 最优；无界=假天花板/500=劣档）。clone2 `start_clone89.sh` 已改；标准档 `watchdog-vps/start_clone89_std.sh`；clone1/clone3 待开机同步。VPS 看门狗拉起即带 budget。
 - 续接：说「按交接提示继续」→ `qwen38-5090-deploy/docs/接交接.md`
 
-> 版本 v1.3 ｜ 2026-08-23 ｜ **归档v3**：3 台 clone 齐成 clone2 状态 + codex+qwen(思考机)暂停(留provider)、主力改 Hermes、VPS 看门狗3台巡检；伞 tag `archive-20260823-v3`
+> 版本 v1.4 ｜ 2026-08-24 ｜ **归档v4**：主力思考档落定 `--reasoning-budget 2000`（budget 三档对比甜区，无界假天花板/500 劣档）；伞 tag `archive-20260824`
 > 归档节点：子项目① `archive-20260823-v2`，子项目② `archive-20260823`（均在各自 repo）｜伞 `archive-20260823-v3`
 > 续接：说「按交接提示继续」→ 记忆 `qwen38-clone-switch-resume-handoff`
