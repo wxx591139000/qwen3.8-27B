@@ -31,8 +31,9 @@
 | clone2 | westc:19407 | start_clone89.sh |
 | clone1 | westc:46949 | start_clone89.sh |
 | clone3(原vgpu) | westd:31102 | start_clone89.sh |
+| clone4 | westd:18574 | start_clone89.sh |   ← ★2026-08-25 新入队(budget2000) |
 
-## 部署（当前已完成的 clone2/clone1/clone3）
+## 部署（当前已完成的 clone2/clone1/clone3/clone4）
 **VPS 侧**（`vps-aliyun`，101.200.227.65）：
 ```bash
 scp/rsh 到 /opt/qwen-watchdog/ 下 id_watchdog(私钥) 与 known_hosts
