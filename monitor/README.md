@@ -19,6 +19,15 @@ python qwen_window_monitor.py --append   # 追加一份快照到 monitor.log
 
 **局限**：服务器 `/metrics` 未开(Prometheus 未启)，且 llama-server 不区分请求来源，**只有 Hermes 侧 agent.log 能归属到具体窗口**；服务器 `/slots` 只能看当前正在处理的那 1 个请求峰值。
 
+**峰谷成本核算**（补 deepseek-pricing skill §4 口径）：
+```bash
+python qwen_cost.py          # 全量三档(全峰/全谷/混合)，默认 Flash 人民币
+python qwen_cost.py --pro    # V4-Pro 档作上限
+python qwen_cost.py --usd    # 美元价
+python qwen_cost.py --since 2   # 只看最近 2 天
+```
+数据源 `~/.hermes/profiles/qwenthink/state.db`（只读）：sessions 表分列 input(input=新输入不含缓存)/cache_read/output；messages 表 role=assistant 的 epoch 时间戳做峰谷拆分。峰谷窗口=北京时间工作日 09-12/14-18，谷=峰×0.5。实测(2026-08-26 全量)：缓存命中 96%，混合 Flash ¥30.53 / Pro ¥91.59（与 deepseek-pricing skill 基准 ¥26/¥80 相符）。
+
 ## 二、Hermes Token 计价接入
 
 **背景**：Hermes 计价核心 `agent/usage_pricing.py`，来源只有 (a)内置价格表 `_OFFICIAL_DOCS_PRICING` / (b) `/models` 端点的 `pricing` 字段。clone4 llama-server 的 `/models` 不返回 pricing → qwen 原本报「未配置计价」。
