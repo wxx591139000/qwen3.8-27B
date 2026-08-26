@@ -17,8 +17,9 @@ qwen3.8-27B（本伞项目 = E:\myClaudCodeWorkspace\qwen3.8-27B\）
 │      （活技能在本机 ~/.claude/skills/qwen38-clone-server/，随本伞入库备份）
 ├── watchdog-vps/                       ← ★辅助子项：阿里云VPS看门狗（开机自启+崩溃自愈拉起qwen服务）
 │      （VPS 常开监测，机器在线∧llama down → 自动 SSH 起 llama-server；存档脚本+systemd unit+README）
-└── monitor/                           ← 逐窗口用量监控 + qwen token 计价配置（2026-08-26）
-       （qwen_window_monitor.py 探 ~/.hermes/profiles/qwenthink/logs/agent.log 按窗口聚合；Hermes 计价接入 deepseek-v4-flash 高峰静态价；README 含峰谷价表/切换）
+├── docs/deepseek-pricing/             ← 收录 Hermes skill（官方峰谷价+图像token+成本核算口径）
+└── monitor/                           ← 逐窗口监控 + qwen 计价/峰谷成本核算（2026-08-26）
+       （qwen_window_monitor.py 按窗口聚合 token/耗时；qwen_cost.py 纯本地两档每日成本表+--report；Hermes 计价接入 deepseek-v4-flash 高峰静态价；README 含峰谷价表/切换/用法）
 ```
 > 两子项目各自的 `.git` 随目录移动、远端/tag/历史完整保留；服务器跑在 `/root/autodl-tmp`(AutoDL)，与本位置无关 → **分支依赖零影响**。`branches/` 已在 .gitignore，不入伞。
 
@@ -47,9 +48,13 @@ qwen3.8-27B（本伞项目 = E:\myClaudCodeWorkspace\qwen3.8-27B\）
 - **★决策（2026-08-23）**：**codex + qwen（思考机）组合暂停**——codex 走 `/v1/responses` 强制 high 思考，与服务器 `--reasoning on` 冲突超时（根因见 qwen38_facts §codex）。要 codex 用 qwen 须 `--reasoning off` 的机；**当前主力开发路径 = Hermes + qwen 思考（✔ 兼容）**。codex provider/别名保留未删（"暂时"，随时可回）。
 - **Hermes**：`hermes-qwen` = `hermes -p qwenthink`（per-window 仅 qwen 窗口，**指向 clone4 公网** `u1068217-x588-77ebd208.westd.seetacloud.com:8443`；全局 deepseek 不动）
 - **★主力思考档（2026-08-24）**：`--reasoning-budget 2000`（budget 三档对比甜区：aime 复核≥无界、coding 75% 最优；无界=假天花板/500=劣档）。clone2/clone4 `start_clone89.sh` 已改(budget2000)；标准档 `watchdog-vps/start_clone89_std.sh`；**clone1/clone3 待开机同步 budget2000**（仍是 8.23 无 budget 旧快照）。VPS 看门狗拉起即带 budget。
-- **★逐窗口监控 + 计价（2026-08-26）**：`monitor/qwen_window_monitor.py` 解析 `~/.hermes/profiles/qwenthink/logs/agent.log`（每 API call 带 `[session_id]`=窗口含 in/out/latency），计划任务 `qwen-window-monitor` 每10min 快照 `monitor/monitor.log`。Hermes 计价**不支持峰谷**→ 已在 `usage_pricing.py` 内置表加 `qwenthink/qwen3.8-27b`=**deepseek-v4-flash 高峰静态价**($0.44未命中/$0.014命中/$1.32输出)，改源码→新窗口生效。详见 `monitor/README.md`。
+- **★逐窗口监控 + 计价 + 成本核算（2026-08-26）**：
+  - `monitor/qwen_window_monitor.py` 解析 `~/.hermes/profiles/qwenthink/logs/agent.log`（每 API call 带 `[session_id]`=窗口含 in/out/latency），计划任务 `qwen-window-monitor` 每10min 快照 `monitor/monitor.log`。
+  - Hermes 计价**不支持峰谷**→ 已在 `usage_pricing.py` 内置表加 `qwenthink/qwen3.8-27b`=**deepseek-v4-flash 高峰静态价**($0.44未命中/$0.014命中/$1.32输出)，改源码→新窗口生效。
+  - `monitor/qwen_cost.py` **峰谷成本核算**：纯本地读 state.db、零 token；**默认两档(Flash+Pro)每日表格**(混合/全峰，¥/$)；`--day/--detail` 分会话；**每日 8点/17点 计划任务**(qwen-cost-0800/1700) `--report` 追加快照到 `monitor/daily_cost.log`。
+  - 已收录 Hermes skill `docs/deepseek-pricing/SKILL.md`（官方峰谷价+图像token+成本核算口径）。详见 `monitor/README.md`。
 - 续接：说「按交接提示继续」→ `qwen38-5090-deploy/docs/接交接.md`
 
-> 版本 v1.6 ｜ 2026-08-26 ｜ **归档v6**：新增 `monitor/` 子项（逐窗口用量常驻监控 + qwen Hermes 计价接入：内置表 deepseek-v4-flash 高峰静态价，Hermes 无峰谷维度）；伞 tag `archive-20260826`
+> 版本 v1.7 ｜ 2026-08-26 ｜ **归档v7**：成本核算 `monitor/qwen_cost.py` 两档表格 + 每日8/17点自动任务 + 收录 `docs/deepseek-pricing`；伞 tag `archive-20260826-v2`
 > 归档节点：子项目① `archive-20260823-v2`，子项目② `archive-20260823`（均在各自 repo）｜伞 `archive-20260823-v3`
 > 续接：说「按交接提示继续」→ 记忆 `qwen38-clone-switch-resume-handoff`
