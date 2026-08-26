@@ -1,2 +1,4 @@
-# 子项目是独立 git 仓库，不纳入伞仓库
-branches/
+监控运行产物/缓存
+monitor/*.log
+__pycache__/
+*.pyc
