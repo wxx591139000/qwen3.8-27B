@@ -21,12 +21,14 @@ python qwen_window_monitor.py --append   # 追加一份快照到 monitor.log
 
 **峰谷成本核算**（补 deepseek-pricing skill §4 口径）：
 ```bash
-python qwen_cost.py          # 全量三档(全峰/全谷/混合)，默认 Flash 人民币
-python qwen_cost.py --pro    # V4-Pro 档作上限
-python qwen_cost.py --usd    # 美元价
-python qwen_cost.py --since 2   # 只看最近 2 天
+python qwen_cost.py               # 按天汇总每日成本(默认, 必选之一)
+python qwen_cost.py --day 2026-08-26  # 某一天会话明细(分会话看)*
+python qwen_cost.py --detail      # 追加全部分会话明细*
+python qwen_cost.py --pro | --usd # 档位(V4-Pro作上限)/币种(美元)
+python qwen_cost.py --since 3     # 只看最近 3 天
 ```
-数据源 `~/.hermes/profiles/qwenthink/state.db`（只读）：sessions 表分列 input(input=新输入不含缓存)/cache_read/output；messages 表 role=assistant 的 epoch 时间戳做峰谷拆分。峰谷窗口=北京时间工作日 09-12/14-18，谷=峰×0.5。实测(2026-08-26 全量)：缓存命中 96%，混合 Flash ¥30.53 / Pro ¥91.59（与 deepseek-pricing skill 基准 ¥26/¥80 相符）。
+数据源 `~/.hermes/profiles/qwenthink/state.db`（只读）：sessions 表分列 input(input=新输入不含缓存)/cache_read/output；messages 表 role=assistant 的 epoch 时间戳做峰谷拆分（按会话 started_at 归属到天）。峰谷窗口=北京时间工作日 09-12/14-18，谷=峰×0.5。**纯本地计算、零 token 消耗**；金额均带 ¥/$ 单位；进行中会话标＊。
+实测(2026-08-26 按天合计)：缓存命中 89%，混合 Flash ¥31.15 / Pro ≈¥90（与 deepseek-pricing skill 基准 ¥26/¥80 区间相符，含今日新增）。
 
 ## 二、Hermes Token 计价接入
 
