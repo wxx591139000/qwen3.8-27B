@@ -9,6 +9,8 @@ TARGETS=(
   "connect.westc.seetacloud.com:19407:root:/bin/bash /root/autodl-tmp/start_clone89.sh"   # clone2
   "connect.westc.seetacloud.com:46949:root:/bin/bash /root/autodl-tmp/start_clone89.sh"   # clone1
   "connect.westd.seetacloud.com:31102:root:/bin/bash /root/autodl-tmp/start_clone89.sh"   # clone3(原vgpu)
+  "connect.westd.seetacloud.com:18574:root:/bin/bash /root/autodl-tmp/start_clone89.sh"   # clone4(4080S/新)
+  "connect.westb.seetacloud.com:27190:root:/bin/bash /root/autodl-tmp/start_clone89.sh"   # clone5(2026-09-16新增)
 )
 HEALTH='curl -s -m 6 http://127.0.0.1:6006/health'
 while true; do
